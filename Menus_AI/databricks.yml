@@ -1,4 +1,0 @@
-variables:
-  sql_server_host:
-    description: "The hostname for the source SQL Server"
-    default: "dev-sql-server.infomedia.com"
