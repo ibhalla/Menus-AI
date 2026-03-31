@@ -1,0 +1,42 @@
+import os
+import json
+from databricks.sdk import WorkspaceClient
+
+# 1. Initialize the client
+w = WorkspaceClient()
+
+# 2. Define the path where your files are currently saved
+workspace_folder_path = "/Workspace/Users/ibhalla@infomedia.com.au/Deployment/Notebooks/Genie Workspaces/"
+
+# 3. SET YOUR SQL WAREHOUSE ID 
+target_warehouse_id = "915c63dd22dda7f3" 
+
+print(f"Scanning directory: {workspace_folder_path} for Genie exports...\n")
+
+# 4. Loop through the files and import them
+for filename in os.listdir(workspace_folder_path):
+    if filename.endswith(".json"):
+        file_path = os.path.join(workspace_folder_path, filename)
+        
+        # Read the JSON file
+        with open(file_path, "r") as f:
+            config_data = json.load(f)
+            
+        serialized_string = json.dumps(config_data)
+        
+        # Clean up the filename to use as the new Space Title
+        space_title = filename.replace(".json", "").replace("_", " ") + " (Restored)"
+        
+        try:
+            # Create the new space
+            new_space = w.genie.create_space(
+                warehouse_id=target_warehouse_id,
+                title=space_title,
+                serialized_space=serialized_string
+            )
+            print(f"✅ Successfully imported: {filename} -> {space_title}")
+            print(f"   New Space Link: /genie/spaces/{new_space.space_id}")
+        except Exception as e:
+            print(f"❌ Failed to import {filename}: {e}")
+
+print("\nImport process complete! You can find your new spaces in the Genie UI.")
